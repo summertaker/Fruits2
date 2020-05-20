@@ -1,6 +1,14 @@
 <resources>
     <string name="app_name">Fruits2</string>
-    <string name="hello_fruits">Hello, Fruits.</string>
-    <string name="where_are_we">Where are We.</string>
-    <string name="going_today">Going Today.</string>
+
+    <string name="explore">Explore</string>
+    <string name="search">Search</string>
+    <string name="favorite">Favorite</string>
+
+    <string name="ex_birthday">1997年6月15日</string>
+    <string name="ex_age">22歳</string>
+    <string name="ex_name">村山彩希</string>
+    <string name="ex_furigana">むらやま ゆいり</string>
+    <string name="ex_group">AKB48</string>
+    <string name="ex_team">4</string>
 </resources>

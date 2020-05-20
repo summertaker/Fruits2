@@ -1,10 +1,14 @@
 package com.summertaker.fruits2
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
+import androidx.viewpager2.widget.ViewPager2
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.Response
@@ -16,17 +20,31 @@ import org.json.JSONObject
 import java.util.*
 import kotlin.math.abs
 
-
 class MainActivity : AppCompatActivity() {
+
+    private val fruits = ArrayList<Fruit>()
+    private var mPosition = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        locationViewPager.clipToPadding = false
-        locationViewPager.clipChildren = false
-        locationViewPager.offscreenPageLimit = 3
-        locationViewPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+        ivTwitter.setOnClickListener {
+            val fruit: Fruit = fruits[mPosition]
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fruit.twitter))
+            startActivity(intent)
+        }
+
+        ivInstagram.setOnClickListener {
+            val fruit: Fruit = fruits[mPosition]
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fruit.instagram))
+            startActivity(intent)
+        }
+
+        memberViewPager.clipToPadding = false
+        memberViewPager.clipChildren = false
+        memberViewPager.offscreenPageLimit = 3
+        memberViewPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
 
         val compositePageTransformer = CompositePageTransformer()
         compositePageTransformer.addTransformer(MarginPageTransformer(40))
@@ -34,7 +52,17 @@ class MainActivity : AppCompatActivity() {
             val r = 1 - abs(position)
             page.scaleY = 0.95f + r * 0.05f
         }
-        locationViewPager.setPageTransformer(compositePageTransformer)
+
+        memberViewPager.setPageTransformer(compositePageTransformer)
+        memberViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                mPosition = position
+                val fruit: Fruit = fruits[position]
+                //Log.e(">>", fruit.name)
+                renderMember(fruit)
+            }
+        })
 
         val url = "http://summertaker.cafe24.com/reader/akb48_json.php"
 
@@ -48,7 +76,6 @@ class MainActivity : AppCompatActivity() {
         val request =
             JsonObjectRequest(Request.Method.POST, url, jsonObject, Response.Listener { response ->
                 //println("응답: $response");
-                val fruits = ArrayList<Fruit>()
                 try {
                     val jsonArray = response.getJSONArray("members")
                     val shuffleArray = shuffleJsonArray(jsonArray);
@@ -62,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                                     r.getString("name"),
                                     r.getString("furigana"),
                                     r.getString("birthday"),
-                                    r.getInt("age"),
+                                    r.getString("age"),
                                     r.getString("image"),
                                     r.getString("twitter"),
                                     r.getString("instagram"),
@@ -75,7 +102,8 @@ class MainActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
                 val adapter = PagerRecyclerAdapter(fruits)
-                locationViewPager.adapter = adapter
+                memberViewPager.adapter = adapter
+                renderMember(fruits[0])
             }, Response.ErrorListener {
                 println("에러: $it")
             })
@@ -107,5 +135,25 @@ class MainActivity : AppCompatActivity() {
             array.put(i, `object`)
         }
         return array
+    }
+
+    fun renderMember(fruit: Fruit) {
+        supportActionBar?.title = fruit.group + " " + fruit.team
+
+        tvBirthday.text = fruit.birthday
+        tvAge.text = fruit.age
+        tvName.text = fruit.name
+        tvFurigana.text = fruit.furigana
+
+        if (fruit.twitter.isEmpty()) {
+            ivTwitter.visibility = View.GONE
+        } else {
+            ivTwitter.visibility = View.VISIBLE
+        }
+        if (fruit.instagram.isEmpty()) {
+            ivInstagram.visibility = View.GONE
+        } else {
+            ivInstagram.visibility = View.VISIBLE
+        }
     }
 }
